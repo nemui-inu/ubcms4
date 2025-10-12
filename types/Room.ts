@@ -1,0 +1,19 @@
+export interface Room {
+  id: number;
+  building_name: string;
+  room_number: string;
+  owner_id: number;
+  status: string;
+}
+
+export interface RoomTableProps {
+  initialRooms: Room[];
+}
+
+export interface RoomModalProps {
+  open: boolean;
+  mode: "view" | "create" | "edit" | "delete";
+  onClose: () => void;
+  onSubmit?: (room: Room) => void;
+  defaultValues?: Partial<Room>;
+}
