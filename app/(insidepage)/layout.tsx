@@ -14,9 +14,9 @@ export default function RoomsLayout({
     <SidebarProvider className="">
       <AppSidebar />
       <SidebarInset>
-        <main className="ms-4 me-4 flex align-center justify-center w-full">
-          <div className="flex flex-col gap-2 w-full">
-            <SidebarTrigger className="mt-2" />
+        <main className="flex flex-row w-full h-full p-4">
+          <div className="flex flex-col gap-2 w-full h-full">
+            <SidebarTrigger />
             {children}
           </div>
         </main>

@@ -7,9 +7,5 @@ export default async function Page() {
 
   // <pre>{JSON.stringify(rooms, null, 2)}</pre>;
 
-  return (
-    <div className="flex flex-1">
-      <RoomTable initialRooms={rooms ?? []} />
-    </div>
-  );
+  return <RoomTable initialRooms={rooms ?? []} />;
 }

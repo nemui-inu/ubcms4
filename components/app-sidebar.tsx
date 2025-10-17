@@ -1,73 +1,69 @@
+"use client";
+
+import * as React from "react";
 import {
-  LayoutDashboard,
+  Building2,
   Gauge,
+  LayoutDashboardIcon,
   User,
-  Building,
-  ReceiptText,
+  Users,
 } from "lucide-react";
 
+import { NavUser } from "@/components/nav-user";
+import NavMain from "./nav-main";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 
-// Menu items.
-const items = [
-  {
-    title: "Dashboard",
-    url: "#",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Rates",
-    url: "#",
-    icon: Gauge,
-  },
-  {
-    title: "Bills",
-    url: "#",
-    icon: ReceiptText,
-  },
-  {
-    title: "Rooms",
-    url: "#",
-    icon: Building,
-  },
-  {
-    title: "Users",
-    url: "#",
-    icon: User,
-  },
-];
+// This is sample data.
+const data = {
+  items: [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboardIcon,
+      url: "/dashboard",
+    },
+    {
+      title: "Rooms",
+      icon: Building2,
+      url: "/rooms",
+    },
+    {
+      title: "Tenants",
+      icon: Users,
+      url: "#",
+    },
+    {
+      title: "Collectors",
+      icon: User,
+      url: "#",
+    },
+    {
+      title: "Rates",
+      icon: Gauge,
+      url: "#",
+    },
+  ],
+};
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar className="w-[230px]">
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <TeamSwitcher />
+      </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>UBCMS</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <NavMain items={data.items} />
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

@@ -23,7 +23,7 @@ const RoomModal: React.FC<RoomModalProps> = ({
     },
     delete: {
       title: "Delete Room",
-      description: "Delete information from table",
+      description: "Delete row from table",
     },
     create: {
       title: "Add New Room",
@@ -42,9 +42,9 @@ const RoomModal: React.FC<RoomModalProps> = ({
     >
       <div className={mode !== "delete" ? "hidden " : "grid gap-6"}>
         <p className="">
-          Are you sure you want to delete this data with{" "}
+          Are you sure you want to delete this room:{" "}
           <span className="font-mono bg-neutral-700 px-1 rounded-[0.2rem]">
-            id: {defaultValues?.id}
+            {defaultValues?.building_name} {defaultValues?.room_number}
           </span>
           ?
         </p>

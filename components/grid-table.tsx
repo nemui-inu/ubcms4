@@ -44,7 +44,7 @@ GridTableProps<T>) => {
   const columnWithActions = useMemo<ColDef<T>[]>(() => {
     const actionsCol: ColDef<T> = {
       headerName: "Actions",
-      width: 160,
+      width: 100,
       cellRenderer: (params: ICellRendererParams<T>) => {
         const row = params.data;
         if (!row) return null;
@@ -94,37 +94,39 @@ GridTableProps<T>) => {
 
   const defaultColDef = {
     flex: 1,
+    minWidth: 150,
     sortable: true,
     resizable: true,
     filter: true,
   };
 
   const gridTheme = themeQuartz.withParams({
-    backgroundColor: "#0a0a0a",
     borderRadius: 2,
-    browserColorScheme: "dark",
-    foregroundColor: "#fafafa",
     headerFontSize: 14,
     wrapperBorderRadius: "0.5rem",
+    backgroundColor: "#0a0a0a",
+    browserColorScheme: "dark",
+    foregroundColor: "#fafafa",
     rowHoverColor: "#171717",
   });
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      <div className="flex flex-row justify-between items-center">
-        <div className="flex items-center gap-2">
-          <InputGroup className="max-w-sm">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between items-end md:items-center">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <InputGroup className="w-full md:max-w-sm">
             <InputGroupAddon>
-              <Search className="" />
+              <Search className="w-full" />
             </InputGroupAddon>
             <InputGroupInput
+              className="w-full"
               placeholder={"Search ..."}
               value={quickFilterText}
               onChange={(e) => setQuickFilterText(e.target.value)}
             />
           </InputGroup>
         </div>
-        <div className="flex flex-row justify-end items-center gap-2">
+        <div className="flex flex-row justify-end items-center gap-4 md:gap-2">
           <Button variant={"secondary"} size={"sm"} onClick={() => {}}>
             <FileText size={16} />
             {"Export PDF"}
@@ -135,7 +137,7 @@ GridTableProps<T>) => {
           </Button>
         </div>
       </div>
-      <div style={{ height, width: "full" }}>
+      <div style={{ height }} className="w-full">
         <AgGridReact<T>
           theme={gridTheme}
           rowData={rowData}
@@ -144,6 +146,7 @@ GridTableProps<T>) => {
           quickFilterText={quickFilterText}
           cacheQuickFilter={true}
           includeHiddenColumnsInQuickFilter={false}
+          domLayout={"autoHeight"}
         />
       </div>
     </div>
