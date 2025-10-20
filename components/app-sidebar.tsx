@@ -36,17 +36,17 @@ const data = {
     {
       title: "Tenants",
       icon: Users,
-      url: "#",
+      url: "/users/tenants",
     },
     {
       title: "Collectors",
       icon: User,
-      url: "#",
+      url: "/users/collectors",
     },
     {
       title: "Rates",
       icon: Gauge,
-      url: "#",
+      url: "/rates",
     },
   ],
 };

@@ -72,6 +72,7 @@ const RoomTable = ({ initialRooms }: RoomTableProps) => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onCreate={handleCreate}
+        buttonName="Room"
       />
 
       <RoomModal

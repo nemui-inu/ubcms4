@@ -18,38 +18,37 @@ export function useCurrentUser() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function fetchUser() {
-    setLoading(true);
-
-    // Get the logged-in user from auth
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      setUserData(null);
-      setLoading(false);
-      return;
-    }
-
-    // Fetch from public.users table
-    const { data, error } = await supabase
-      .from("users")
-      .select("id, mil_rank, user_id, first_name, last_name, email, role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (error) {
-      setUserData(null);
-    } else {
-      setUserData(data);
-    }
-
-    setLoading(false);
-  }
-
   useEffect(() => {
+    async function fetchUser() {
+      setLoading(true);
+
+      // Get the logged-in user from auth
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch from public.users table
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, mil_rank, user_id, first_name, last_name, email, role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) {
+        setUserData(null);
+      } else {
+        setUserData(data);
+      }
+
+      setLoading(false);
+    }
     fetchUser();
     // ✅ Subscribe to auth changes (login/logout)
     const {
@@ -67,7 +66,7 @@ export function useCurrentUser() {
     return () => {
       subscription.unsubscribe();
     };
-  });
+  }, [supabase]);
 
   // Logout function
   async function signOut() {

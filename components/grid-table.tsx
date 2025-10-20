@@ -27,6 +27,7 @@ interface GridTableProps<T extends object> {
   onCreate?: () => void;
   height?: number;
   width?: number;
+  buttonName?: string;
 }
 
 const GridTable = <T extends object>({
@@ -37,6 +38,7 @@ const GridTable = <T extends object>({
   onDelete,
   onCreate,
   height = 480,
+  buttonName,
 }: // width = 800,
 GridTableProps<T>) => {
   const [quickFilterText, setQuickFilterText] = useState("");
@@ -133,7 +135,7 @@ GridTableProps<T>) => {
           </Button>
           <Button variant={"default"} size={"sm"} onClick={onCreate}>
             <PlusIcon size={16} />
-            {"Add Room"}
+            {`Add ${buttonName ? buttonName : ""}`}
           </Button>
         </div>
       </div>
