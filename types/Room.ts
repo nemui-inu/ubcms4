@@ -4,6 +4,7 @@ export interface Room {
   room_number: string;
   owner_id: number;
   status: string;
+  is_read: boolean;
 }
 
 export interface RoomTableProps {

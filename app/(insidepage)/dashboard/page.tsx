@@ -1,8 +1,23 @@
+"use client";
+
 import { ChartPieDonutText } from "@/components/charts/pie-chart";
 import RatesCard from "@/components/rates-card";
 import TransactionHistory from "@/components/transaction-history";
+import { useUser } from "@/context/user-context";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
+  const { userData } = useUser();
+  const router = useRouter();
+
+  if (userData?.role !== "Tenant" && userData?.role !== "Admin") {
+    router.push("/dashboard-collector");
+    return;
+  } else if (userData?.role !== "Admin") {
+    router.push("/dashboard-tenant");
+    return;
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 pt-0">
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">

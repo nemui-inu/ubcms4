@@ -67,6 +67,7 @@ const RoomTable = ({ initialRooms }: RoomTableProps) => {
           { field: "room_number" },
           { field: "owner_id" },
           { field: "status" },
+          { field: "is_read" },
         ]}
         onView={handleView}
         onEdit={handleEdit}

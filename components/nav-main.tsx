@@ -12,6 +12,7 @@ import { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useUser } from "@/context/user-context";
 
 const NavMain = ({
   items,
@@ -34,9 +35,19 @@ const NavMain = ({
     setSelected(url);
   };
 
+  const { userData } = useUser();
+  if (!userData) return null;
+
+  if (userData.role !== "Admin") {
+    items = items.filter((item) => item.title === "Dashboard");
+  }
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Admin Controls</SidebarGroupLabel>
+      <SidebarGroupLabel>
+        {userData.role.charAt(0).toUpperCase() + userData.role.slice(1)}
+        {" Controls"}
+      </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
