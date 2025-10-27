@@ -12,15 +12,14 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import PdfExport from "@/components/pdf-export";
 import { Button } from "./ui/button";
 import { DollarSign } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type BillRow = {
@@ -28,15 +27,16 @@ type BillRow = {
   month: string;
   amount_due: string;
   due_date: string;
-  is_paid: boolean;
   status: string | null;
 };
 
 const TransactionHistory = () => {
   const supabase = createClient();
-  const router = useRouter();
   const [rows, setRows] = useState<BillRow[]>([]);
   const [loading, setLoading] = useState(false);
+  // For PDF receipt after payment
+  const [paidBill, setPaidBill] = useState<BillDetails | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   type BillDetails = {
     id: number;
@@ -52,7 +52,7 @@ const TransactionHistory = () => {
       current_reading?: number;
       last_reading?: number;
     };
-    users?: unknown;
+    // users?: unknown;
     [key: string]: unknown;
   };
   const [viewBill, setViewBill] = useState<BillDetails | null>(null);
@@ -150,10 +150,20 @@ const TransactionHistory = () => {
       console.error("Error inserting payment record:", paymentError);
       return;
     }
+    // Fetch full bill details for receipt
+    const { data: paidBillData, error: paidBillError } = await supabase
+      .from("bills")
+      .select("*, readings(*), rates(*), rooms(*), users(*)")
+      .eq("id", billId)
+      .maybeSingle();
     setLoading(false);
-    // Redirect to payment page after marking as paid and inserting payment
-    const url = `/payment?billId=${billId}`;
-    router.push(url);
+    if (!paidBillError && paidBillData) {
+      setPaidBill(paidBillData);
+      setShowReceipt(true);
+    }
+    // Optionally, you can still redirect or refresh bills
+    // const url = `/payment?billId=${billId}`;
+    // router.push(url);
   }
 
   // Expose fetchBills so it can be called after payment
@@ -296,176 +306,240 @@ const TransactionHistory = () => {
   }, [supabase]);
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader>
-        <div className="flex flex-row justify-between items-center">
-          <CardTitle>
-            <div className="flex flex-row gap-1 items-center">
-              <DollarSign className="w-4 h-4" />
-              <p>Bills to Pay</p>
+    <>
+      {/* Receipt Dialog */}
+      <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Payment Receipt</DialogTitle>
+            <DialogDescription>
+              {paidBill ? `Receipt for Bill #${paidBill.id}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {paidBill && (
+            <div className="flex flex-col gap-2">
+              <PdfExport
+                filename={`receipt-bill-${paidBill.id}.pdf`}
+                title={`Payment Receipt for Bill #${paidBill.id}`}
+                rows={[
+                  {
+                    "Billing Period": `${paidBill.billing_period_start} to ${paidBill.billing_period_end}`,
+                    "Due Date": paidBill.due_date,
+                    "Amount Due": paidBill.amount_due,
+                    Status: paidBill.status,
+                    Room: `${paidBill.rooms?.building_name ?? ""} ${
+                      paidBill.rooms?.room_number ?? ""
+                    }`,
+                    "Utility Type": paidBill.rates?.utility_type,
+                    "Current Reading":
+                      paidBill.readings?.current_reading ?? "-",
+                    "Previous Reading": paidBill.readings?.last_reading ?? "-",
+                    Usage:
+                      paidBill.readings &&
+                      paidBill.readings.current_reading != null &&
+                      paidBill.readings.last_reading != null
+                        ? paidBill.readings.current_reading -
+                          paidBill.readings.last_reading
+                        : "-",
+                    Collector: paidBill.readings?.collector_id ?? "-",
+                    "Payment Date": new Date().toLocaleString(),
+                  },
+                ]}
+                columns={[
+                  "Billing Period",
+                  "Due Date",
+                  "Amount Due",
+                  "Status",
+                  "Room",
+                  "Utility Type",
+                  "Current Reading",
+                  "Previous Reading",
+                  "Usage",
+                  "Collector",
+                  "Payment Date",
+                ]}
+              />
+              <Button variant="secondary" onClick={() => setShowReceipt(false)}>
+                Close
+              </Button>
             </div>
-          </CardTitle>
-          <PdfExport
-            filename="bills-to-pay.pdf"
-            title="Bills to Pay"
-            rows={rows.map((r) => ({
-              month: r.month,
-              amount_due: r.amount_due,
-              due_date: r.due_date,
-            }))}
-            columns={["month", "amount_due", "due_date"]}
-          />
-        </div>
-        <CardDescription></CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2 w-full py-0 my-0">
-        <div className="ps-4 flex flex-row items-center justify-between w-full">
-          <p className="flex-2 w-1">Month</p>
-          <p className="flex-2 w-24">Amount Due</p>
-          <p className="flex-3 w-24">Due Date</p>
-          <div className="w-12 flex-2 justify-end flex-row flex opacity-0"></div>
-        </div>
-        {loading ? (
-          <div className="p-4">Loading bills...</div>
-        ) : rows.length === 0 ? (
-          <div className="p-4">No bills to display.</div>
-        ) : (
-          rows.map((r, idx) => (
-            <Card className="w-full" key={String(r.id ?? idx)}>
-              <CardContent className="py-2 ps-4 pe-2 w-full">
-                <div className="flex flex-row items-center justify-between w-full">
-                  <p className="flex-2 w-1">{String(r.month)}</p>
-                  <p className="flex-2 w-24">{String(r.amount_due)}</p>
-                  <p className="flex-3 w-24">{String(r.due_date)}</p>
-                  <div className="w-32 flex-2 justify-end flex-row flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleViewBill(r.id)}
+          )}
+        </DialogContent>
+      </Dialog>
+      <Card className="w-full h-full">
+        <CardHeader>
+          <div className="flex flex-row justify-between items-center">
+            <CardTitle>
+              <div className="flex flex-row gap-1 items-center">
+                <DollarSign className="w-4 h-4" />
+                <p>Bills to Pay</p>
+              </div>
+            </CardTitle>
+            <PdfExport
+              filename="bills-to-pay.pdf"
+              title="Bills to Pay"
+              rows={rows.map((r) => ({
+                month: r.month,
+                amount_due: r.amount_due,
+                due_date: r.due_date,
+              }))}
+              columns={["month", "amount_due", "due_date"]}
+            />
+          </div>
+          <CardDescription></CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 w-full py-0 my-0">
+          <div className="ps-4 flex flex-row items-center justify-between w-full">
+            <p className="flex-2 w-1">Month</p>
+            <p className="flex-2 w-24">Amount Due</p>
+            <p className="flex-3 w-24">Due Date</p>
+            <div className="w-12 flex-2 justify-end flex-row flex opacity-0"></div>
+          </div>
+          {loading ? (
+            <div className="p-4">Loading bills...</div>
+          ) : rows.length === 0 ? (
+            <div className="p-4">No bills to display.</div>
+          ) : (
+            rows.map((r, idx) => (
+              <Card className="w-full" key={String(r.id ?? idx)}>
+                <CardContent className="py-2 ps-4 pe-2 w-full">
+                  <div className="flex flex-row items-center justify-between w-full">
+                    <p className="flex-2 w-1">{String(r.month)}</p>
+                    <p className="flex-2 w-24">{String(r.amount_due)}</p>
+                    <p className="flex-3 w-24">{String(r.due_date)}</p>
+                    <div className="w-32 flex-2 justify-end flex-row flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleViewBill(r.id)}
+                      >
+                        View Bill
+                      </Button>
+                      <Button onClick={() => proceedPayment(r.id)}>
+                        Pay Bill
+                      </Button>
+                    </div>
+                    {/* Bill Details Modal */}
+                    <Dialog
+                      open={!!viewBill}
+                      onOpenChange={(open) => {
+                        if (!open) setViewBill(null);
+                      }}
                     >
-                      View Bill
-                    </Button>
-                    <Button onClick={() => proceedPayment(r.id)}>
-                      Pay Bill
-                    </Button>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Bill Details</DialogTitle>
+                          <DialogDescription>
+                            {viewLoading
+                              ? "Loading..."
+                              : viewBill
+                              ? `Bill #${viewBill.id}`
+                              : ""}
+                          </DialogDescription>
+                        </DialogHeader>
+                        {viewBill && !viewLoading && (
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <b>Billing Period:</b>{" "}
+                              {viewBill.billing_period_start} to{" "}
+                              {viewBill.billing_period_end}
+                            </div>
+                            <div>
+                              <b>Due Date:</b> {viewBill.due_date}
+                            </div>
+                            <div>
+                              <b>Amount Due:</b> {viewBill.amount_due}
+                            </div>
+                            <div>
+                              <b>Status:</b> {viewBill.status}
+                            </div>
+                            <div>
+                              <b>Room:</b> {viewBill.rooms?.building_name}{" "}
+                              {viewBill.rooms?.room_number}
+                            </div>
+                            <div>
+                              <b>Utility Type:</b>{" "}
+                              {viewBill.rates?.utility_type}
+                            </div>
+                            <div>
+                              <b>Current Reading:</b>{" "}
+                              {viewBill.readings?.current_reading ?? "-"}
+                            </div>
+                            <div>
+                              <b>Previous Reading:</b>{" "}
+                              {viewBill.readings?.last_reading ?? "-"}
+                            </div>
+                            <div>
+                              <b>Usage:</b>{" "}
+                              {viewBillUsage !== null ? viewBillUsage : "-"}
+                            </div>
+                            <div>
+                              <b>Collector:</b>{" "}
+                              {viewCollector
+                                ? `${viewCollector.rank} ${viewCollector.name}`
+                                : viewBill.readings?.collector_id ?? "-"}
+                            </div>
+                          </div>
+                        )}
+                        <DialogFooter>
+                          <div className="flex flex-row gap-2 w-full justify-between">
+                            <PdfExport
+                              filename={`bill-${viewBill?.id}.pdf`}
+                              title={`Bill #${viewBill?.id}`}
+                              rows={[
+                                {
+                                  "Billing Period": `${viewBill?.billing_period_start} to ${viewBill?.billing_period_end}`,
+                                  "Due Date": viewBill?.due_date,
+                                  "Amount Due": viewBill?.amount_due,
+                                  Status: viewBill?.status,
+                                  Room: `${
+                                    viewBill?.rooms?.building_name ?? ""
+                                  } ${viewBill?.rooms?.room_number ?? ""}`,
+                                  "Utility Type": viewBill?.rates?.utility_type,
+                                  "Current Reading":
+                                    viewBill?.readings?.current_reading ?? "-",
+                                  "Previous Reading":
+                                    viewBill?.readings?.last_reading ?? "-",
+                                  Usage:
+                                    viewBillUsage !== null
+                                      ? viewBillUsage
+                                      : "-",
+                                  Collector: viewCollector
+                                    ? `${viewCollector.rank} ${viewCollector.name}`
+                                    : viewBill?.readings?.collector_id ?? "-",
+                                },
+                              ]}
+                              columns={[
+                                "Billing Period",
+                                "Due Date",
+                                "Amount Due",
+                                "Status",
+                                "Room",
+                                "Utility Type",
+                                "Current Reading",
+                                "Previous Reading",
+                                "Usage",
+                                "Collector",
+                              ]}
+                            />
+                            <Button
+                              variant="secondary"
+                              onClick={() => setViewBill(null)}
+                            >
+                              Close
+                            </Button>
+                          </div>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                  {/* Bill Details Modal */}
-                  <Dialog
-                    open={!!viewBill}
-                    onOpenChange={(open) => {
-                      if (!open) setViewBill(null);
-                    }}
-                  >
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Bill Details</DialogTitle>
-                        <DialogDescription>
-                          {viewLoading
-                            ? "Loading..."
-                            : viewBill
-                            ? `Bill #${viewBill.id}`
-                            : ""}
-                        </DialogDescription>
-                      </DialogHeader>
-                      {viewBill && !viewLoading && (
-                        <div className="flex flex-col gap-2">
-                          <div>
-                            <b>Billing Period:</b>{" "}
-                            {viewBill.billing_period_start} to{" "}
-                            {viewBill.billing_period_end}
-                          </div>
-                          <div>
-                            <b>Due Date:</b> {viewBill.due_date}
-                          </div>
-                          <div>
-                            <b>Amount Due:</b> {viewBill.amount_due}
-                          </div>
-                          <div>
-                            <b>Status:</b> {viewBill.status}
-                          </div>
-                          <div>
-                            <b>Room:</b> {viewBill.rooms?.building_name}{" "}
-                            {viewBill.rooms?.room_number}
-                          </div>
-                          <div>
-                            <b>Utility Type:</b> {viewBill.rates?.utility_type}
-                          </div>
-                          <div>
-                            <b>Current Reading:</b>{" "}
-                            {viewBill.readings?.current_reading ?? "-"}
-                          </div>
-                          <div>
-                            <b>Previous Reading:</b>{" "}
-                            {viewBill.readings?.last_reading ?? "-"}
-                          </div>
-                          <div>
-                            <b>Usage:</b>{" "}
-                            {viewBillUsage !== null ? viewBillUsage : "-"}
-                          </div>
-                          <div>
-                            <b>Collector:</b>{" "}
-                            {viewCollector
-                              ? `${viewCollector.rank} ${viewCollector.name}`
-                              : viewBill.readings?.collector_id ?? "-"}
-                          </div>
-                        </div>
-                      )}
-                      <DialogFooter>
-                        <div className="flex flex-row gap-2 w-full justify-between">
-                          <PdfExport
-                            filename={`bill-${viewBill?.id}.pdf`}
-                            title={`Bill #${viewBill?.id}`}
-                            rows={[
-                              {
-                                "Billing Period": `${viewBill?.billing_period_start} to ${viewBill?.billing_period_end}`,
-                                "Due Date": viewBill?.due_date,
-                                "Amount Due": viewBill?.amount_due,
-                                Status: viewBill?.status,
-                                Room: `${
-                                  viewBill?.rooms?.building_name ?? ""
-                                } ${viewBill?.rooms?.room_number ?? ""}`,
-                                "Utility Type": viewBill?.rates?.utility_type,
-                                "Current Reading":
-                                  viewBill?.readings?.current_reading ?? "-",
-                                "Previous Reading":
-                                  viewBill?.readings?.last_reading ?? "-",
-                                Usage:
-                                  viewBillUsage !== null ? viewBillUsage : "-",
-                                Collector: viewCollector
-                                  ? `${viewCollector.rank} ${viewCollector.name}`
-                                  : viewBill?.readings?.collector_id ?? "-",
-                              },
-                            ]}
-                            columns={[
-                              "Billing Period",
-                              "Due Date",
-                              "Amount Due",
-                              "Status",
-                              "Room",
-                              "Utility Type",
-                              "Current Reading",
-                              "Previous Reading",
-                              "Usage",
-                              "Collector",
-                            ]}
-                          />
-                          <Button
-                            variant="secondary"
-                            onClick={() => setViewBill(null)}
-                          >
-                            Close
-                          </Button>
-                        </div>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </CardContent>
-      <CardFooter></CardFooter>
-    </Card>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </CardContent>
+        <CardFooter></CardFooter>
+      </Card>
+    </>
   );
 };
 export default TransactionHistory;
