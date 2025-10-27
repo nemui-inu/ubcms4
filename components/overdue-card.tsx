@@ -47,7 +47,9 @@ const RatesCard = ({
           </div>
         </CardContent>
         <CardFooter className="flex justify-center w-full">
-          <Button variant="secondary">{buttonText ?? "View Bills"}</Button>
+          {!body.startsWith("0 overdue bill") && (
+            <Button variant="secondary">{buttonText ?? "View Bills"}</Button>
+          )}
         </CardFooter>
       </Card>
     </div>

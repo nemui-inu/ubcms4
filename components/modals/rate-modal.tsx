@@ -52,34 +52,21 @@ const UserModal: React.FC<RatesModalProps> = ({
       <div className={mode === "delete" ? "hidden " : "grid gap-6"}>
         <div className="flex flex-row gap-4">
           <div className="grid gap-4">
-            <Label htmlFor="id">ID</Label>
+            <Label htmlFor="utility_type">Utility Type</Label>
             <Input
-              id="id"
-              name="id"
-              defaultValue={
-                !defaultValues?.id && mode === "create"
-                  ? "Field automatic"
-                  : defaultValues?.id
-              }
+              id="utility_type"
+              name="utility_type"
+              defaultValue={defaultValues?.utility_type ?? ""}
               disabled={true}
             />
           </div>
           <div className="grid gap-4">
-            <Label htmlFor="owner_id">Utility Type</Label>
+            <Label htmlFor="amount">Amount</Label>
             <Input
-              id="owner_id"
-              name="owner_id"
-              defaultValue={defaultValues?.utility_type}
-              disabled={true}
-            />
-          </div>
-          <div className="grid gap-4">
-            <Label htmlFor="owner_id">Amount</Label>
-            <Input
-              id="owner_id"
-              name="owner_id"
-              defaultValue={defaultValues?.amount}
-              disabled={true}
+              id="amount"
+              name="amount"
+              defaultValue={defaultValues?.amount ?? ""}
+              disabled={mode === "view"}
             />
           </div>
         </div>

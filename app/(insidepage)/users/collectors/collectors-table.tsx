@@ -16,7 +16,10 @@ const CollectorsTable = ({ initialUsers }: UserTableProps) => {
   const supabase = createClient();
 
   const refreshUsers = async () => {
-    const { data } = await supabase.from("users").select();
+    const { data } = await supabase
+      .from("users")
+      .select()
+      .eq("role", "Collector");
     setUsers(data ?? []);
   };
 
@@ -36,9 +39,15 @@ const CollectorsTable = ({ initialUsers }: UserTableProps) => {
 
   const handleSubmit = async (data: User) => {
     if (modalMode === "edit" && selectedUser) {
+      const raw = data as unknown as Record<string, string>;
+      const payload: Record<string, unknown> = { ...raw };
+      if (payload.id !== undefined) delete payload.id;
+      Object.keys(payload).forEach(
+        (k) => payload[k] === undefined && delete payload[k]
+      );
       const { error } = await supabase
         .from("users")
-        .update(data)
+        .update(payload)
         .eq("id", selectedUser.id);
       if (error) console.error(error);
     } else if (modalMode === "delete" && selectedUser) {
@@ -48,7 +57,13 @@ const CollectorsTable = ({ initialUsers }: UserTableProps) => {
         .eq("id", selectedUser.id);
       if (error) console.error(error);
     } else if (modalMode === "create") {
-      const { error } = await supabase.from("users").insert([data]);
+      const raw = data as unknown as Record<string, string>;
+      const payload: Record<string, unknown> = { ...raw };
+      if (payload.id !== undefined) delete payload.id;
+      Object.keys(payload).forEach(
+        (k) => payload[k] === undefined && delete payload[k]
+      );
+      const { error } = await supabase.from("users").insert([payload]);
       if (error) console.error(error);
     }
 

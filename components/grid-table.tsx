@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/input-group";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Pencil, Trash2, Search, FileText, PlusIcon } from "lucide-react";
+import PdfExport from "@/components/pdf-export";
+import { Eye, Pencil, Trash2, Search, PlusIcon } from "lucide-react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -23,6 +24,7 @@ interface GridTableProps<T extends object> {
   columnDefs: ColDef<T>[];
   onEdit?: (row: T) => void;
   onView?: (row: T) => void;
+  onRecordReading?: (row: T) => void;
   onDelete?: (row: T) => void;
   onCreate?: () => void;
   height?: number;
@@ -35,6 +37,7 @@ const GridTable = <T extends object>({
   columnDefs,
   onEdit,
   onView,
+  onRecordReading,
   onDelete,
   onCreate,
   height = 480,
@@ -53,6 +56,17 @@ GridTableProps<T>) => {
 
         return (
           <div className="flex flex-row justify-center gap-2 items-center h-full">
+            {onRecordReading && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onRecordReading(row)}
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                title="Record Reading"
+              >
+                <PlusIcon className="h-4 w-4" />
+              </Button>
+            )}
             {onView && (
               <Button
                 variant="ghost"
@@ -92,7 +106,7 @@ GridTableProps<T>) => {
     } satisfies ColDef<T>;
 
     return [...columnDefs, actionsCol];
-  }, [columnDefs, onEdit, onDelete, onView]);
+  }, [columnDefs, onEdit, onDelete, onView, onRecordReading]);
 
   const defaultColDef = {
     flex: 1,
@@ -129,11 +143,23 @@ GridTableProps<T>) => {
           </InputGroup>
         </div>
         <div className="flex flex-row justify-end items-center gap-4 md:gap-2">
-          <Button variant={"secondary"} size={"sm"} onClick={() => {}}>
-            <FileText size={16} />
-            {"Export PDF"}
-          </Button>
-          <Button variant={"default"} size={"sm"} onClick={onCreate}>
+          <PdfExport
+            filename={`${buttonName ? buttonName : "data"}.pdf`}
+            title={`${buttonName ? buttonName : "Data"} Report`}
+            // Cast rowData to the generic ExportRow[] shape for the PDF exporter
+            rows={rowData as unknown as import("@/types/Export").ExportRow[]}
+            columns={columnDefs
+              .map((c) => (c.field ? String(c.field) : ""))
+              .filter(Boolean)}
+          />
+          <Button
+            variant={"default"}
+            size={"sm"}
+            onClick={onCreate}
+            className={
+              buttonName === "Rate" || buttonName === "Reading" ? "hidden" : ""
+            }
+          >
             <PlusIcon size={16} />
             {`Add ${buttonName ? buttonName : ""}`}
           </Button>

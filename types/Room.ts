@@ -9,6 +9,7 @@ export interface Room {
 
 export interface RoomTableProps {
   initialRooms: Room[];
+  collectorMode?: boolean;
 }
 
 export interface RoomModalProps {

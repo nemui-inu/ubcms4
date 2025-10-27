@@ -26,7 +26,7 @@ const data = {
     {
       title: "Dashboard",
       icon: LayoutDashboardIcon,
-      url: "/dashboard",
+      url: "/",
     },
     {
       title: "Rooms",

@@ -65,10 +65,10 @@ const UserModal: React.FC<UserModalProps> = ({
             />
           </div>
           <div className="grid gap-4">
-            <Label htmlFor="owner_id">Role</Label>
+            <Label htmlFor="role">Role</Label>
             <Input
-              id="owner_id"
-              name="owner_id"
+              id="role"
+              name="role"
               defaultValue={defaultValues?.role ?? "Tenant"}
               disabled={true}
             />
@@ -76,20 +76,20 @@ const UserModal: React.FC<UserModalProps> = ({
         </div>
         <div className="flex flex-row gap-4">
           <div className="grid gap-4">
-            <Label htmlFor="building_name">First Name</Label>
+            <Label htmlFor="first_name">First Name</Label>
             <Input
-              id="building_name"
-              name="building_name"
+              id="first_name"
+              name="first_name"
               type="string"
               defaultValue={defaultValues?.first_name ?? ""}
               disabled={mode === "view"}
             />
           </div>
           <div className="grid gap-4">
-            <Label htmlFor="room_number">Last Name</Label>
+            <Label htmlFor="last_name">Last Name</Label>
             <Input
-              id="room_number"
-              name="room_number"
+              id="last_name"
+              name="last_name"
               type="string"
               defaultValue={defaultValues?.last_name ?? ""}
               disabled={mode === "view"}
@@ -98,19 +98,19 @@ const UserModal: React.FC<UserModalProps> = ({
         </div>
         <div className="flex flex-row gap-4">
           <div className="grid gap-4">
-            <Label htmlFor="owner_id">Serial Number</Label>
+            <Label htmlFor="serial_number">Serial Number</Label>
             <Input
-              id="owner_id"
-              name="owner_id"
+              id="serial_number"
+              name="serial_number"
               defaultValue={defaultValues?.serial_number}
               disabled={mode === "view"}
             />
           </div>
           <div className="grid gap-4">
-            <Label htmlFor="status">{"Rank (e.g. PVT, 2LT, ...)"}</Label>
+            <Label htmlFor="mil_rank">{"Rank (e.g. PVT, 2LT, ...)"}</Label>
             <Input
-              id="status"
-              name="status"
+              id="mil_rank"
+              name="mil_rank"
               type="string"
               defaultValue={defaultValues?.mil_rank ?? ""}
               disabled={mode === "view"}
@@ -118,10 +118,10 @@ const UserModal: React.FC<UserModalProps> = ({
           </div>
         </div>
         <div className="grid gap-4">
-          <Label htmlFor="status">Email</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
-            id="status"
-            name="status"
+            id="email"
+            name="email"
             type="string"
             defaultValue={defaultValues?.email ?? ""}
             disabled={mode === "view"}

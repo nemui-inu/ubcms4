@@ -37,9 +37,26 @@ const RatesTable = ({ initialRates }: RatesTableProps) => {
 
   const handleSubmit = async (data: Rate) => {
     if (modalMode === "edit" && selectedRate) {
+      // coerce and sanitize payload coming from FormData
+      const raw = data as unknown as Record<string, string>;
+      const payload: Record<string, unknown> = { ...raw };
+      // remove id if present (don't attempt to update primary key)
+      if (payload.id !== undefined) delete payload.id;
+
+      // coerce amount if present
+      if (typeof payload.amount === "string") {
+        const n = Number(payload.amount as string);
+        payload.amount = Number.isNaN(n) ? null : n;
+      }
+
+      // remove undefined values
+      Object.keys(payload).forEach((k) => {
+        if (payload[k] === undefined) delete payload[k];
+      });
+
       const { error } = await supabase
         .from("rates")
-        .update(data)
+        .update(payload)
         .eq("id", selectedRate.id);
       if (error) console.error(error);
     } else if (modalMode === "delete" && selectedRate) {
@@ -49,7 +66,14 @@ const RatesTable = ({ initialRates }: RatesTableProps) => {
         .eq("id", selectedRate.id);
       if (error) console.error(error);
     } else if (modalMode === "create") {
-      const { error } = await supabase.from("rates").insert([data]);
+      // coerce amount for create
+      const raw = data as unknown as Record<string, string>;
+      const payload: Record<string, unknown> = { ...raw };
+      if (typeof payload.amount === "string") {
+        const n = Number(payload.amount as string);
+        payload.amount = Number.isNaN(n) ? null : n;
+      }
+      const { error } = await supabase.from("rates").insert([payload]);
       if (error) console.error(error);
     }
 

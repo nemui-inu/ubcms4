@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Card,
@@ -8,8 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { History } from "lucide-react";
-import { Button } from "./ui/button";
-import { FileText } from "lucide-react";
+import PdfExport from "@/components/pdf-export";
 
 const TransactionHistory = () => {
   return (
@@ -22,10 +23,11 @@ const TransactionHistory = () => {
               <p>Transaction History</p>
             </div>
           </CardTitle>
-          <Button variant={"secondary"} size={"sm"}>
-            <FileText />
-            Export PDF
-          </Button>
+          <PdfExport
+            filename="transaction-history.pdf"
+            title="Transaction History"
+            rows={[]}
+          />
         </div>
         <CardDescription></CardDescription>
       </CardHeader>
